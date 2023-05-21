@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 
+//use std::error::Error; //Для impl CustomError, но потом
 use rusqlite::{Connection, Result};
+use std::fmt; //Для ipml CustomError
 
 
 fn main() {
@@ -18,13 +20,38 @@ fn main() {
 }
 
 
-fn set_mode(args: &Vec<String>) -> Result<()>{//, &'static str> {
+// Создаем свой тип ошибки. Т.к. я хочу текст и rusqlite::Error в одном.
+#[derive(Debug)]
+struct CustomE {
+    message: String,
+}
+
+impl fmt::Display for CustomE {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+//Классная штука, но потом.
+//impl Error for CustomError {} 
+
+impl From<rusqlite::Error> for CustomE {
+    fn from(err: rusqlite::Error) -> Self {
+        Self {
+            message: err.to_string(),
+        }
+    }
+}
+
+fn set_mode(args: &Vec<String>) -> Result<(), CustomE> {
     match args[1].as_str() {
         "-I" => DataForDB::insert_db(&args)?,
         "-S" => DataForDB::select_db(&args)?,
         _ => {
             println!("Not found  arguments");
-            //return Err("Not found arguments");
+            return Err(CustomE {
+                message: "Not found arguments".to_string()
+            });
         },
     }
     Ok(())
@@ -38,7 +65,7 @@ struct DataForDB {
 }
 
 impl DataForDB {
-    fn get_data(args: &Vec<String>) -> DataForDB {
+    fn get_data(args: &Vec<String>) -> Self {
         let obj_data: DataForDB;
         for index in 3..args.len() {
             match args[index].as_str() {
@@ -60,10 +87,10 @@ impl DataForDB {
         }
     }
 
-    pub fn insert_db(args: &Vec<String>) -> Result<()>{
+    pub fn insert_db(args: &Vec<String>) -> Result<()> {
         Self::get_data(&args);
     }
-    pub fn select_db(args: &Vec<String>) -> Result<()>{
+    pub fn select_db(args: &Vec<String>) -> Result<()> {
         Self::get_data(&args);
     }
 }
