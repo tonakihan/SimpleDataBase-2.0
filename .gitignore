@@ -1,1 +1,5 @@
 /target
+/Lib
+/Scripts
+/Include
+/pyvenv.cfg
