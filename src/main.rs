@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-//use std::error::Error; //Для impl CustomError, но потом
+//use std::error::Error; //TODO:Для impl CustomError, но потом
 use rusqlite::{Connection, Result};
 use std::fmt; //Для ipml CustomError
 
@@ -10,17 +10,16 @@ fn main() {
     use std::env;
 
     let args: Vec<String> = env::args().collect();
-
     if args.len() < 2 {
         println!("Not found arguments");
         exit(1);
     }
-
     set_mode(&args);
 }
 
 
-// Создаем свой тип ошибки. Т.к. я хочу текст и rusqlite::Error в одном.
+// Создал свой тип ошибки. Т.к. я хочу свой 
+// текст и rusqlite::Error в одном.
 #[derive(Debug)]
 struct CustomE {
     message: String,
@@ -32,7 +31,7 @@ impl fmt::Display for CustomE {
     }
 }
 
-//Классная штука, но потом.
+//TODO:Классная штука, но потом.
 //impl Error for CustomError {} 
 
 impl From<rusqlite::Error> for CustomE {
@@ -65,22 +64,38 @@ struct DataForDB {
 }
 
 impl DataForDB {
+    fn new() -> Self {
+        Self {
+            target: String::new(),
+            column: Vec::<String>::new(),
+            value: Vec::<String>::new(),
+        }
+    }
+
     fn get_data(args: &Vec<String>) -> Self {
-        let obj_data: DataForDB;
+        //Вылуживает данные из строки запуска
+        let mut obj_data = Self::new();
         for index in 3..args.len() {
             match args[index].as_str() {
-                "-t" => obj_data.target = args[index+1],
-                "-c" => obj_data.column = get_value_args(args[index+1..]),
-                "-v" => obj_data.value = get_value_args(args[index+1..]),
+                "-t" => obj_data.target = args[index+1].clone(),
+                "-c" => obj_data.column = get_value_args(args, index+1),
+                "-v" => obj_data.value = get_value_args(args, index+1),
+                //TODO:Переделать на нормальную ошибку
                 _ => println!("Error: что-то пошло не так. {}", args[index]),
             } 
         }
         return obj_data;
 
-        fn get_value_args(args: Vec<String>) {
-            let result = String::from("");
-            for element in args {
-                if element.get(0) != Some("-") { result += &element }
+        fn get_value_args(args: &Vec<String>, index: usize) -> Vec<String> {
+            //Оно принимает строку запуска + индекс от куда начать
+            let mut result = Vec::<String>::new();
+            for element in &args[index..] {
+                //Тут чекаю является ли элемент > ключом запуска
+                if (element.chars().nth(0) != Some('-')) ||
+                   (element.chars().nth(0) != None)
+                { 
+                    result.push(element.to_string()) 
+                }
                 else { break }
             }
             return result;
@@ -89,8 +104,13 @@ impl DataForDB {
 
     pub fn insert_db(args: &Vec<String>) -> Result<()> {
         Self::get_data(&args);
+        println!("Тут типо вставил");
+        Ok(())
     }
     pub fn select_db(args: &Vec<String>) -> Result<()> {
         Self::get_data(&args);
+        println!("Тут типо запросил");
+        Ok(())
     }
 }
+
