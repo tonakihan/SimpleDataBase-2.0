@@ -21,14 +21,14 @@ impl DataForDB {
     fn get_data(args: &Vec<String>) -> Result<Self, CustomE> {
         // Вылуживает данные из строки запуска
         let mut obj_data = Self::new();
-        let mut index = 2;
-        //TODO: Найти и решить проблему - нет данных у -с и -v
+        let mut index: usize = 2;
         while index < args.len() {
+            println!("args el: {}", args[index]);
             match args[index].as_str() {
                 "-t" => obj_data.target = args[index+1].clone(),
                 "-c" => obj_data.column = get_value_args(args, index+1),
                 "-v" => obj_data.value = get_value_args(args, index+1),
-                _ => index += 1,
+                _ => (),
             }
             index += 1;
         }
@@ -39,7 +39,7 @@ impl DataForDB {
             let mut result = Vec::<String>::new();
             for element in &args[index..] {
                 // Тут чекаю является ли элемент -> ключом запуска
-                if (element.chars().nth(0) != Some('-')) ||
+                if (element.chars().nth(0) != Some('-')) &&
                    (element.chars().nth(0) != None)
                 { 
                     result.push(element.to_string()) 
