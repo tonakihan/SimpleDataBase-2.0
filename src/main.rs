@@ -5,8 +5,6 @@ mod part_db;
 // Включаем в область видимости структуры
 use crate::part_db::error::CustomE;
 use crate::part_db::db::DataForDB;
-//use std::num::ParseIntError; //TODO:Возможно оно не надо тут
-
 
 fn main() {
     use std::process::exit;
@@ -14,18 +12,20 @@ fn main() {
 
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        println!("Not found arguments");
+        eprintln!("Not found arguments");
         exit(1);
     }
-    set_mode(&args)
+
+    let path_to_db = "data/test.db".to_string();
+    set_mode(&args, &path_to_db)
         .expect("Проблемы из set_mode");
 }
 
 
-fn set_mode(args: &Vec<String>) -> Result<(), CustomE> {
+fn set_mode(args: &Vec<String>, path_db: &String) -> Result<(), CustomE> {
     match args[1].as_str() {
-        "-I" => DataForDB::insert_db(&args)?,
-        "-S" => DataForDB::select_db(&args)?,
+        "-I" => DataForDB::insert_db(&args, &path_db)?,
+        "-S" => DataForDB::select_db(&args, &path_db)?,
         _ => return Err("Not found arguments".into()),
     }
     Ok(())
