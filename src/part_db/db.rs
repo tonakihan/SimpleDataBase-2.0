@@ -48,61 +48,128 @@ impl DataForDB {
     }
 
     pub fn insert_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
-        let data = Self::get_data(&args)?;
+        let data_args = Self::get_data(&args)?;
         let conn = Connection::open(path)?;
-
-        match data.target.as_str() {
+        let sql: String = match data_args.target.as_str() {
             "Студент" => {
-                //TODO: Подумать как сделать
-                conn.prepare(
-                    "INSERT INTO 'Cтуденты' (?1) 
-                    VALUES (?2)", [data.column, data.value],
-                )?;
+                data_args.query_generic("Cтуденты", "-I")?;
+                "".to_string()
             },
             "Направление" => {
-                conn.prepare("INSERT INTO 'Направления' () VALUES ()")?;
+                data_args.query_generic("", "-I")?;
+                "".to_string()
             },
             "Посещаемость" => {
-                conn.prepare("INSERT INTO 'Посещаемость' () VALUES ()")?;
+                data_args.query_generic("", "-I")?;
+                "".to_string()
             },
             "Ведомость" => {
-                conn.prepare("INSERT INTO 'Ведомость' () VALUES ()")?;
+                data_args.query_generic("", "-I")?;
+                "".to_string()
             },
             "Тема занятия" => {
-                conn.prepare("INSERT INTO 'Тема_занятия' () VALUES ()")?;
+                data_args.query_generic("", "-I")?;
+                "".to_string()
             },
             "Предмет" => {
-                conn.prepare("INSERT INTO 'Предметы' () VALUES ()")?;
+                data_args.query_generic("", "-I")?;
+                "".to_string()
             },
-            "Факультет" => {
-                conn.prepare("INSERT INTO 'Факультет' () VALUES ()")?;
-            },
+            "Факультет" => data_args.query_generic("Факультет", "-I")?,
             _ => return Err("Проблема в target".into()),
-        }
+        };
+
+        conn.execute(&sql, ())?;
 
         Ok(())
     }
 
-    pub fn select_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
-        let data = Self::get_data(&args)?;
-        let conn = Connection::open(path)?;
+    fn query_generic(&self, table: &str, key: &str) 
+    -> Result<String, CustomE> {
+        if (key == "-I") && (self.column.len() < 1)
+            { return Err("Проблема - нет значения column".into()); }
+        if (key == "-I") && (self.value.len() < 1) 
+            { return Err("Проблема - нет значения value".into()); }
+        if (key == "-I") && (self.value.len() != self.column.len()) 
+            { return Err("Проблема - нехватка значений -> value != column".into()); }
 
-        match data.target.as_str() {
-            "Студент" => {
-            },
+        //TODO: КАК ВЫТАСКИВАТЬ ДАННЫЕ ИЗ S и I
+        let mut sql = String::new();
+        if key == "-I" {
+            sql = format!(
+                "INSERT INTO '{}' ({}) VALUES ('{}');",
+                table,
+                self.column.join(", "),
+                self.value.join("', '"),
+            );
+        }
+        else if key == "-S" {
+            if self.column.len() < 1 {
+                sql = format!(
+                    "SELECT * FROM '{}'",
+                    table,
+            )} else {
+                sql = format!(
+                    // 0 - будет значением для избежания ошибок
+                    "SELECT coalesce({}, 0){} FROM '{}'",
+                    self.column.join(", 0, "),
+                    self.column.join(", "),
+                    table,
+            )}
+        }
+
+        Ok(sql)
+    }
+
+    pub fn select_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
+        let data_args = Self::get_data(&args)?;
+        let conn = Connection::open(path)?;
+        let sql: String = match data_args.target.as_str() {
+            "Студент" => data_args.query_generic("Cтуденты", "-S")?,
             "Направление" => {
+                data_args.query_generic("", "-S")?;
+                "".to_string()
             },
             "Посещаемость" => {
+                data_args.query_generic("", "-S")?;
+                "".to_string()
             },
             "Ведомость" => {
+                data_args.query_generic("", "-S")?;
+                "".to_string()
             },
             "Тема занятия" => {
+                data_args.query_generic("", "-S")?;
+                "".to_string()
             },
             "Предмет" => {
+                data_args.query_generic("", "-S")?;
+                "".to_string()
             },
-            "Факультет" => {
-            },
+            "Факультет" => data_args.query_generic("Факультет", "-S")?,
             _ => return Err("Проблема в target".into()),
+        };
+
+        //TODO: Пока не рализовано для случая '*'
+        let mut stmt = conn.prepare(&sql)?;
+        let data_db = stmt.query_map(
+            [], 
+            |row| {
+                let mut index = 0;
+                let mut res_vec = Vec::<String>::new();
+                while index < data_args.column.len() {
+                    if let Some(res_temp) = row.get::<_,String>(index).ok() {
+                        res_vec.push(res_temp);
+                    } else if let Some(res_temp) = row.get::<_,i32>(index).ok() {
+                        res_vec.push(res_temp.to_string());
+                    }
+                    index += 1;
+                }
+                Ok (res_vec)
+        })?;
+        
+        for part in data_db {
+            println!("{:?}", part?);
         }
 
         Ok(())
