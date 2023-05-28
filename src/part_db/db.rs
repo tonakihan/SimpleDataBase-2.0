@@ -48,20 +48,24 @@ impl DataForDB {
     }
 
     pub fn insert_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
-        let data_args = Self::get_data(&args)?;
+        let mut data_args = Self::get_data(&args)?;
         let conn = Connection::open(path)?;
         let sql: String = match data_args.target.as_str() {
-            "Студент" => {
-                data_args.query_generic("Cтуденты", "-I")?;
-                "".to_string()
-            },
+            "Студент" => data_args.query_generic("Cтудент", "-I")?,
             "Направление" => {
-                data_args.query_generic("", "-I")?;
-                "".to_string()
+                data_args.replace_data("Факультет", vec!["id","Наименование"], &conn)?
+                    .query_generic("Направления", "-I")?
             },
             "Посещаемость" => {
-                data_args.query_generic("", "-I")?;
-                "".to_string()
+                // Особенность при встаке надо использовать "ФИО"
+                // Внешние ключи: Студент, Предмет
+                // Ввод: -c Дата,\Предмет,\Студент,Присут,Оценка,Тема -v
+                data_args.replace_data(
+                    "Предмет", vec!["id", "Наименование"], &conn)?;
+                //TODO: Проблема - Имя и Отчество (проще изменить БД)
+                data_args.replace_data(
+                    "Студент", vec!["Номер_зачетки", "Фамилия"], &conn)?;
+                data_args.query_generic("Посещаемость", "-I")?
             },
             "Ведомость" => {
                 data_args.query_generic("", "-I")?;
@@ -80,8 +84,43 @@ impl DataForDB {
         };
 
         conn.execute(&sql, ())?;
-
         Ok(())
+    }
+
+    fn replace_data(&mut self, target: &str, requir_columns: Vec<&str>, 
+    conn: &Connection) -> Result<&Self, CustomE> {
+        // Принимает цель - назв таблицы где искать и список столбцов
+        // Возращает измененные входные данные на значения из target
+
+        let mut two_obj = Self::new();
+        // Задаются столбцы для поиска
+        two_obj.column = requir_columns.into_iter().map(|i| i.to_string()).collect();
+        //Достаю данные из таблици target
+        let two_query = two_obj.query_generic(target, "-S")?;
+        let two_data = two_obj.get_data_db(two_query.as_str(), conn)?;
+        
+        // Тут я ищу index target из строки вводной
+        let mut id_elem_args = None;
+        for index in 0..self.column.len() {
+            if self.column[index] == target {
+                id_elem_args = Some(index);
+                break;
+            }
+        }
+            
+        if id_elem_args == None {
+            return Err(
+                format!("Нет искомого значения в args -> {}", target).into()
+        )}
+
+        // Заменяю значение в вводной строке
+        for two_part in two_data {
+            if self.value[id_elem_args.unwrap()] == two_part[1] {
+                self.value[id_elem_args.unwrap()] = two_part[0].clone();
+                break;
+            }
+        }
+        Ok(self)
     }
 
     fn query_generic(&self, table: &str, key: &str) 
@@ -101,8 +140,7 @@ impl DataForDB {
                 table,
                 self.column.join(", "),
                 self.value.join("', '"),
-            );
-        }
+        )}
         else if key == "-S" {
             if self.column.len() < 1 {
                 sql = format!(
@@ -117,7 +155,6 @@ impl DataForDB {
                     table,
             )}
         }
-
         Ok(sql)
     }
 
@@ -125,7 +162,7 @@ impl DataForDB {
         let data_args = Self::get_data(&args)?;
         let conn = Connection::open(path)?;
         let sql: String = match data_args.target.as_str() {
-            "Студент" => data_args.query_generic("Cтуденты", "-S")?,
+            "Студент" => data_args.query_generic("Cтудент", "-S")?,
             "Направление" => {
                 data_args.query_generic("", "-S")?;
                 "".to_string()
@@ -150,14 +187,22 @@ impl DataForDB {
             _ => return Err("Проблема в target".into()),
         };
 
+        let result = data_args.get_data_db(&sql, &conn)?;
+        for part in result {
+            println!("{:?}", part);
+        }
+        Ok(())
+    }
+
+    fn get_data_db(&self, sql: &str, conn: &Connection) -> Result<Vec<Vec<String>>, CustomE> {
         //TODO: Пока не рализовано для случая '*'
         let mut stmt = conn.prepare(&sql)?;
-        let data_db = stmt.query_map(
+        let rows = stmt.query_map(
             [], 
             |row| {
                 let mut index = 0;
                 let mut res_vec = Vec::<String>::new();
-                while index < data_args.column.len() {
+                while index < self.column.len() {
                     if let Some(res_temp) = row.get::<_,String>(index).ok() {
                         res_vec.push(res_temp);
                     } else if let Some(res_temp) = row.get::<_,i32>(index).ok() {
@@ -165,14 +210,14 @@ impl DataForDB {
                     }
                     index += 1;
                 }
-                Ok (res_vec)
+                Ok(res_vec)
         })?;
-        
-        for part in data_db {
-            println!("{:?}", part?);
+        // Конвертирую в нормальные данные
+        let mut result = Vec::new();
+        for part in rows {
+            result.push(part?)
         }
-
-        Ok(())
+        Ok(result)
     }
 }
 
