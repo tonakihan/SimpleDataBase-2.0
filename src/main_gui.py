@@ -5,14 +5,14 @@ import sys
 class Window(QWidget):
     def __init__(self):
         super().__init__()
-        self.resize(300, 250)
-        self.setWindowTitle("I like cats")
+        self.resize(500, 500)
+        self.setWindowTitle("Why are we still here? Just to suffer?")
  
         layout = QVBoxLayout()
         self.setLayout(layout)
  
         self.input = QLineEdit()
-        self.input.setFixedWidth(150)
+        self.input.setFixedWidth(200)
         layout.addWidget(self.input, alignment= Qt.AlignmentFlag.AlignCenter)
  
         button = QPushButton("Get Text")
@@ -21,6 +21,34 @@ class Window(QWidget):
  
         button = QPushButton("Clear Text")
         button.clicked.connect(self.input.clear)
+        layout.addWidget(button)
+
+        button = QPushButton("Студент")
+        button.clicked.connect(self.get)
+        layout.addWidget(button)
+
+        button = QPushButton("Посещаемость")
+        button.clicked.connect(self.get)
+        layout.addWidget(button)
+
+        button = QPushButton("Направление")
+        button.clicked.connect(self.get)
+        layout.addWidget(button)
+
+        button = QPushButton("Ведомость")
+        button.clicked.connect(self.get)
+        layout.addWidget(button)
+
+        button = QPushButton("Тема занятия")
+        button.clicked.connect(self.get)
+        layout.addWidget(button)
+
+        button = QPushButton("Предмет")
+        button.clicked.connect(self.get)
+        layout.addWidget(button)
+
+        button = QPushButton("Факультет")
+        button.clicked.connect(self.get)
         layout.addWidget(button)
  
     def get(self):
