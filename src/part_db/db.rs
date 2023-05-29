@@ -48,38 +48,102 @@ impl DataForDB {
     }
 
     pub fn insert_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
-        let mut data_args = Self::get_data(&args)?;
+        let data_args = Self::get_data(&args)?;
         let conn = Connection::open(path)?;
         let sql: String = match data_args.target.as_str() {
-            "Студент" => data_args.get_sql("Cтудент", "-I")?,
+            "Студент" => {
+                format!(
+                    "INSERT INTO 'Cтудент' (Номер_зачетки, Имя, Фамилия, Отчество,
+                        Дата_рождения, Группа, Адрес),
+                    VALUE ({},'{}','{}','{}','{}','{}','{}')",
+                    data_args.column[0],//Зачетка
+                    data_args.column[1],//И
+                    data_args.column[2],//Ф
+                    data_args.column[3],//О
+                    data_args.column[4],//Дата рожд
+                    data_args.column[5],//Группа (сокращ)
+                    data_args.column[6],//Адрес
+            )},
             "Направление" => {
-                data_args.replace_data("Факультет", vec!["id","Наименование"], &conn)?
-                    .get_sql("Направления", "-I")?
-            },
+                format!(
+                    "INSERT INTO 'Направление' (Название, Описание,
+                        Код_направления, Дата_начала, Дата_окончания, Факультет)
+                    SELECT '{}','{}',{},'{}','{}',f.id
+                    FROM 'Факультет' f 
+                        WHERE f.Наименование={} ",
+                    data_args.column[0],//Сокр назв
+                    data_args.column[1],//Полное назв
+                    data_args.column[2],//Код напр
+                    data_args.column[3],//Дата нач
+                    data_args.column[4],//Дата оконч
+                    data_args.column[5],//Факультет
+            )},
             "Посещаемость" => {
-                // Особенность при встаке надо использовать "ФИО"
-                // Внешние ключи: Студент, Предмет
-                // Ввод: -c Дата,\Предмет,\Студент,Присут,Оценка,Тема -v
-                data_args.replace_data(
-                    "Предмет", vec!["id", "Наименование"], &conn)?;
-                //TODO: Проблема - Имя и Отчество (проще изменить БД)
-                data_args.replace_data(
-                    "Студент", vec!["Номер_зачетки", "Фамилия"], &conn)?;
-                data_args.get_sql("Посещаемость", "-I")?
-            },
+                format!(
+                    "INSERT INTO 'Посещаемость' (Дата, 
+                        Предмет, Студент, Присутствие, Оценка, 
+                        Тема_занятия)
+                    SELECT '{}', pr.id, st.Номер_зачетки, '{}', {}, pr.id
+                    FROM 'Предмет' pr JOIN 'Студент' st 
+                        ON pr.Наименование='{}'
+                        AND st.Имя='{}'
+                        AND s.Фамилия='{}'
+                        AND s.Отчество='{}'",
+                    data_args.column[0],//Дата
+                    data_args.column[1],//Присут
+                    data_args.column[2],//Оценка
+                    data_args.column[3],//Предмет
+                    data_args.column[4],//И
+                    data_args.column[5],//Ф
+                    data_args.column[6],//О
+            )},
             "Ведомость" => {
-                data_args.get_sql("", "-I")?;
-                "".to_string()
-            },
+                format!("
+                    INSERT INTO Ведомость (Номер_предмет, 
+                        Номер_студент, Оценка, Симестр)
+                    SELECT p.id, s.Номер_зачетки, {}, {}
+                    FROM Предмет p JOIN Cтудент s 
+                        ON p.Наименование='{}' 
+                        AND s.Имя='{}' 
+                        AND s.Фамилия='{}'
+                        AND s.Отчество='{}'",
+                    data_args.column[0],//Оценка
+                    data_args.column[1],//Симестр
+                    data_args.column[2],//Предмет
+                    data_args.column[3],//И
+                    data_args.column[4],//Ф
+                    data_args.column[5],//О
+            )},
             "Тема занятия" => {
-                data_args.get_sql("", "-I")?;
-                "".to_string()
-            },
+            //TODO: Предвижу баг, когда два препода ведут один
+                format!(
+                    "INSERT INTO 'План_обучения' (Предмет, Тема_занятия
+                    SELECT pr.id, '{}' FROM 'Предмет' pr 
+                        WHERE pr.Наименование='{}'",
+                    data_args.column[1],//Тема
+                    data_args.column[0],//Предмет
+            )},
             "Предмет" => {
-                data_args.get_sql("", "-I")?;
-                "".to_string()
+                format!(
+                    "INSRT INTO 'Предмет' (Наименование, Преподаватель) 
+                    SELECT '{}', k.id FROM 'Кадры' k 
+                        WHERE k.Имя='{}' 
+                        AND k.Фамилия='{}' 
+                        AND k.Отчество='{}'
+                        AND k.Дожность=6",
+                    data_args.column[0],//Назв
+                    data_args.column[1],//И
+                    data_args.column[2],//Ф
+                    data_args.column[3],//О
+            )},
+            "Факультет" => {
+                format!(
+                    "INSERT INTO 'Факультет' (Наименование, Адрес)
+                    VALUE ('{}', '{}')",
+                    data_args.column[0],//Назв
+                    data_args.column[1],//Адрес
+                )
             },
-            "Факультет" => data_args.get_sql("Факультет", "-I")?,
             _ => return Err("Проблема в target".into()),
         };
 
@@ -87,7 +151,7 @@ impl DataForDB {
         Ok(())
     }
 
-    fn replace_data(&mut self, target: &str, requir_columns: Vec<&str>, 
+/*    fn replace_data(&mut self, target: &str, requir_columns: Vec<&str>, 
     conn: &Connection) -> Result<&Self, CustomE> {
         // Используется только для вставки
         // Принимает цель - назв таблицы где искать и список столбцов
@@ -167,6 +231,7 @@ impl DataForDB {
         }
         Ok(sql)
     }
+*/
 
     pub fn select_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
         let mut data_args = Self::get_data(&args)?;
@@ -189,7 +254,6 @@ impl DataForDB {
                 GROUP BY Название".to_string()
             },
             "Посещаемость" => {
-                // Предмет и студентa
                 data_args.column.resize(8, "".to_string());
                 "SELECT coalesce(pr.Наименование, 0, pl.Тема_занятия, 0, s.Фамилия,0,  
                     s.Имя, 0, s.Отчество, 0, po.Дата, 0, po.Присутствие, 0, po.Оценка, 0)
@@ -201,7 +265,6 @@ impl DataForDB {
                 GROUP BY Дата".to_string()
             },
             "Ведомость" => {
-                // Студент и Предмет
                 data_args.column.resize(6, "".to_string());
                 "SELECT coalesce(s.Фамилия, 0, s.Имя, 0, s.Отчество, 0, 
                     p.Наименование, 0, v.Симестр, 0, v.Оценка, 0)Фамилия,
@@ -212,7 +275,6 @@ impl DataForDB {
                 GROUP BY Симестр, Наименование".to_string()
             },
             "Тема занятия" => {
-                // Предмет
                 data_args.column.resize(2, "".to_string());
                 "SELECT Предмет, Тема_занятия 
                 FROM 'План_обучения' 
