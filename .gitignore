@@ -3,3 +3,5 @@
 /Scripts
 /Include
 /pyvenv.cfg
+/*.exe
+/*.bin
