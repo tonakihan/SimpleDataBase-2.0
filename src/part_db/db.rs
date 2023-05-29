@@ -23,15 +23,15 @@ impl DataForDB {
         while index < args.len() {
             match args[index].as_str() {
                 "-t" => obj_data.target = args[index+1].clone(),
-                "-c" => obj_data.column = get_value_args(args, index+1),
-                "-v" => obj_data.value = get_value_args(args, index+1),
+                "-c" => obj_data.column = get_val_from_args(args, index+1),
+                "-v" => obj_data.value = get_val_from_args(args, index+1),
                 _ => (),
             }
             index += 1;
         }
         return Ok(obj_data);
 
-        fn get_value_args(args: &Vec<String>, index: usize) -> Vec<String> {
+        fn get_val_from_args(args: &Vec<String>, index: usize) -> Vec<String> {
             // Оно принимает строку запуска + индекс от куда начать
             let mut result = Vec::<String>::new();
             for element in &args[index..] {
@@ -51,10 +51,10 @@ impl DataForDB {
         let mut data_args = Self::get_data(&args)?;
         let conn = Connection::open(path)?;
         let sql: String = match data_args.target.as_str() {
-            "Студент" => data_args.query_generic("Cтудент", "-I")?,
+            "Студент" => data_args.get_sql("Cтудент", "-I")?,
             "Направление" => {
                 data_args.replace_data("Факультет", vec!["id","Наименование"], &conn)?
-                    .query_generic("Направления", "-I")?
+                    .get_sql("Направления", "-I")?
             },
             "Посещаемость" => {
                 // Особенность при встаке надо использовать "ФИО"
@@ -65,21 +65,21 @@ impl DataForDB {
                 //TODO: Проблема - Имя и Отчество (проще изменить БД)
                 data_args.replace_data(
                     "Студент", vec!["Номер_зачетки", "Фамилия"], &conn)?;
-                data_args.query_generic("Посещаемость", "-I")?
+                data_args.get_sql("Посещаемость", "-I")?
             },
             "Ведомость" => {
-                data_args.query_generic("", "-I")?;
+                data_args.get_sql("", "-I")?;
                 "".to_string()
             },
             "Тема занятия" => {
-                data_args.query_generic("", "-I")?;
+                data_args.get_sql("", "-I")?;
                 "".to_string()
             },
             "Предмет" => {
-                data_args.query_generic("", "-I")?;
+                data_args.get_sql("", "-I")?;
                 "".to_string()
             },
-            "Факультет" => data_args.query_generic("Факультет", "-I")?,
+            "Факультет" => data_args.get_sql("Факультет", "-I")?,
             _ => return Err("Проблема в target".into()),
         };
 
@@ -89,6 +89,7 @@ impl DataForDB {
 
     fn replace_data(&mut self, target: &str, requir_columns: Vec<&str>, 
     conn: &Connection) -> Result<&Self, CustomE> {
+        // Используется только для вставки
         // Принимает цель - назв таблицы где искать и список столбцов
         // Возращает измененные входные данные на значения из target
 
@@ -96,8 +97,8 @@ impl DataForDB {
         // Задаются столбцы для поиска
         two_obj.column = requir_columns.into_iter().map(|i| i.to_string()).collect();
         //Достаю данные из таблици target
-        let two_query = two_obj.query_generic(target, "-S")?;
-        let two_data = two_obj.get_data_db(two_query.as_str(), conn)?;
+        let two_query = two_obj.get_sql(target, "-S")?;
+        let two_data = two_obj.get_data_from_db(two_query.as_str(), conn)?;
         
         // Тут я ищу index target из строки вводной
         let mut id_elem_args = None;
@@ -123,8 +124,9 @@ impl DataForDB {
         Ok(self)
     }
 
-    fn query_generic(&self, table: &str, key: &str) 
-    -> Result<String, CustomE> {
+    fn get_sql(&self, table: &str, key: &str) -> 
+    Result<String, CustomE> {
+        // Генерирует синтаксис для запроса в БД - простой
         if (key == "-I") && (self.column.len() < 1)
             { return Err("Проблема - нет значения column".into()); }
         if (key == "-I") && (self.value.len() < 1) 
@@ -134,67 +136,113 @@ impl DataForDB {
 
         //TODO: КАК ВЫТАСКИВАТЬ ДАННЫЕ ИЗ S и I
         let mut sql = String::new();
-        if key == "-I" {
-            sql = format!(
-                "INSERT INTO '{}' ({}) VALUES ('{}');",
-                table,
-                self.column.join(", "),
-                self.value.join("', '"),
-        )}
-        else if key == "-S" {
-            if self.column.len() < 1 {
+        match key {
+            "-I" => {
                 sql = format!(
-                    "SELECT * FROM '{}'",
+                    "INSERT INTO '{}' ({}) VALUES ('{}')",
                     table,
-            )} else {
-                sql = format!(
-                    // 0 - будет значением для избежания ошибок
-                    "SELECT coalesce({}, 0){} FROM '{}'",
-                    self.column.join(", 0, "),
                     self.column.join(", "),
-                    table,
+                    self.value.join("', '"),
             )}
+            "-S" => {
+                if self.column.len() < 1 {
+                    sql = format!(
+                        "SELECT * FROM '{}'",
+                        table,
+                )} else {
+                    sql = format!(
+                        // 0 - будет значением для избежания ошибок
+                        "SELECT coalesce({}, 0){} FROM '{}'",
+                        self.column.join(", 0, "),
+                        self.column.join(", "),
+                        table,
+                )}
+            },
+/*            "-R" => {
+                //TODO: Рекурсия - 
+                sql = format!("INNER JOIN {}")
+            },
+*/
+            _ => return Err("Неверный ключ в get_sql".into()),
         }
         Ok(sql)
     }
 
     pub fn select_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
-        let data_args = Self::get_data(&args)?;
+        let mut data_args = Self::get_data(&args)?;
         let conn = Connection::open(path)?;
         let sql: String = match data_args.target.as_str() {
-            "Студент" => data_args.query_generic("Cтудент", "-S")?,
+            "Студент" => {
+                data_args.column.resize(7, "".to_string());
+                "SELECT coalesce(Номер_зачетки, 0, Фамилия, 0, Имя, 0, Отчество, 0, 
+                    Дата_рождения, 0, Группа, 0, Адрес, 0) Номер_зачетки,Фамилия,Имя, 
+                    Отчество,Дата_рождения,Группа,Адрес
+                FROM 'Cтудент'".to_string()
+            },
             "Направление" => {
-                data_args.query_generic("", "-S")?;
-                "".to_string()
+                data_args.column.resize(6, "".to_string());
+                "SELECT coalesce(n.Название, 0, n.Описание, 0, n.Код_направления, 0, n.Дата_начала, 
+                    0, n.Дата_окончания, 0, f.Наименование, 0)Название,Описание,Код_направления,
+                    Дата_начала,Дата_окончания,Наименование
+                FROM 'Направление' n 
+                INNER JOIN 'Факультет' f ON n.Факультет=f.id
+                GROUP BY Название".to_string()
             },
             "Посещаемость" => {
-                data_args.query_generic("", "-S")?;
-                "".to_string()
+                // Предмет и студентa
+                data_args.column.resize(8, "".to_string());
+                "SELECT coalesce(pr.Наименование, 0, pl.Тема_занятия, 0, s.Фамилия,0,  
+                    s.Имя, 0, s.Отчество, 0, po.Дата, 0, po.Присутствие, 0, po.Оценка, 0)
+                    Наименование,pl.Тема_занятия,Фамилия,Имя,Отчество,Дата,Присутствие,Оценка
+                FROM 'Посещаемость' po
+                INNER JOIN 'Cтудент' s ON s.Номер_зачетки=po.Студент
+                INNER JOIN 'Предмет' pr ON pr.id=po.Предмет
+                INNER JOIN 'План_обучения' pl ON pl.id=po.Тема_занятия
+                GROUP BY Дата".to_string()
             },
             "Ведомость" => {
-                data_args.query_generic("", "-S")?;
-                "".to_string()
+                // Студент и Предмет
+                data_args.column.resize(6, "".to_string());
+                "SELECT coalesce(s.Фамилия, 0, s.Имя, 0, s.Отчество, 0, 
+                    p.Наименование, 0, v.Симестр, 0, v.Оценка, 0)Фамилия,
+                    Имя,Отчество,Наименование,Симестр,Оценка
+                FROM 'Ведомость' v
+                INNER JOIN 'Cтудент' s ON s.Номер_зачетки=v.Номер_студент
+                INNER JOIN 'Предмет' p ON p.id=v.Номер_предмет
+                GROUP BY Симестр, Наименование".to_string()
             },
             "Тема занятия" => {
-                data_args.query_generic("", "-S")?;
+                // Предмет
+                data_args.column.resize(2, "".to_string());
+                "SELECT Предмет, Тема_занятия 
+                FROM 'План_обучения' 
+                GROUP BY Предмет".to_string()
+            },
+/*            "Предмет" => {
+                // Препода (потом)
+                data_args.get_sql("", "-S")?;
                 "".to_string()
             },
-            "Предмет" => {
-                data_args.query_generic("", "-S")?;
-                "".to_string()
-            },
-            "Факультет" => data_args.query_generic("Факультет", "-S")?,
+*/
+            "Факультет" => {
+                data_args.column.resize(3, "".to_string());
+                "SELECT coalesce(id, Наименование, 0, Адрес, 0) 
+                    id, Наименование, Адрес
+                FROM 'Факультет'
+                GROUP BY id".to_string()
+            }
             _ => return Err("Проблема в target".into()),
         };
-
-        let result = data_args.get_data_db(&sql, &conn)?;
+        
+        let result = data_args.get_data_from_db(&sql, &conn)?;
         for part in result {
-            println!("{:?}", part);
+            println!("{}", part.join(" | "));
         }
         Ok(())
     }
 
-    fn get_data_db(&self, sql: &str, conn: &Connection) -> Result<Vec<Vec<String>>, CustomE> {
+    fn get_data_from_db(&self, sql: &str, conn: &Connection) -> 
+    Result<Vec<Vec<String>>, CustomE> {
         //TODO: Пока не рализовано для случая '*'
         let mut stmt = conn.prepare(&sql)?;
         let rows = stmt.query_map(
