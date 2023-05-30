@@ -6,6 +6,8 @@ mod part_db;
 use crate::part_db::error::CustomE;
 use crate::part_db::db::DataForDB;
 
+const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
+
 fn main() {
     use std::process::exit;
     use std::env;
@@ -26,6 +28,7 @@ fn set_mode(args: &Vec<String>, path_db: &String) -> Result<(), CustomE> {
     match args[1].as_str() {
         "-I" => DataForDB::insert_db(&args, &path_db)?,
         "-S" => DataForDB::select_db(&args, &path_db)?,
+        "-V" => println!("Version: {}", VERSION.unwrap_or("unknown")),
         _ => return Err("Not found arguments".into()),
     }
     Ok(())
