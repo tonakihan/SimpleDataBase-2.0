@@ -56,13 +56,13 @@ impl DataForDB {
                     "INSERT INTO 'Cтудент' (Номер_зачетки, Имя, Фамилия, Отчество,
                         Дата_рождения, Группа, Адрес),
                     VALUE ({},'{}','{}','{}','{}','{}','{}')",
-                    data_args.column[0],//Зачетка
-                    data_args.column[1],//И
-                    data_args.column[2],//Ф
-                    data_args.column[3],//О
-                    data_args.column[4],//Дата рожд
-                    data_args.column[5],//Группа (сокращ)
-                    data_args.column[6],//Адрес
+                    data_args.value[0],//Зачетка
+                    data_args.value[1],//И
+                    data_args.value[2],//Ф
+                    data_args.value[3],//О
+                    data_args.value[4],//Дата рожд
+                    data_args.value[5],//Группа (сокращ)
+                    data_args.value[6],//Адрес
             )},
             "Направление" => {
                 format!(
@@ -71,12 +71,12 @@ impl DataForDB {
                     SELECT '{}','{}',{},'{}','{}',f.id
                     FROM 'Факультет' f 
                         WHERE f.Наименование={} ",
-                    data_args.column[0],//Сокр назв
-                    data_args.column[1],//Полное назв
-                    data_args.column[2],//Код напр
-                    data_args.column[3],//Дата нач
-                    data_args.column[4],//Дата оконч
-                    data_args.column[5],//Факультет
+                    data_args.value[0],//Сокр назв
+                    data_args.value[1],//Полное назв
+                    data_args.value[2],//Код напр
+                    data_args.value[3],//Дата нач
+                    data_args.value[4],//Дата оконч
+                    data_args.value[5],//Факультет
             )},
             "Посещаемость" => {
                 format!(
@@ -89,13 +89,13 @@ impl DataForDB {
                         AND st.Имя='{}'
                         AND s.Фамилия='{}'
                         AND s.Отчество='{}'",
-                    data_args.column[0],//Дата
-                    data_args.column[1],//Присут
-                    data_args.column[2],//Оценка
-                    data_args.column[3],//Предмет
-                    data_args.column[4],//И
-                    data_args.column[5],//Ф
-                    data_args.column[6],//О
+                    data_args.value[0],//Дата
+                    data_args.value[1],//Присут
+                    data_args.value[2],//Оценка
+                    data_args.value[3],//Предмет
+                    data_args.value[4],//И
+                    data_args.value[5],//Ф
+                    data_args.value[6],//О
             )},
             "Ведомость" => {
                 format!("
@@ -107,12 +107,12 @@ impl DataForDB {
                         AND s.Имя='{}' 
                         AND s.Фамилия='{}'
                         AND s.Отчество='{}'",
-                    data_args.column[0],//Оценка
-                    data_args.column[1],//Симестр
-                    data_args.column[2],//Предмет
-                    data_args.column[3],//И
-                    data_args.column[4],//Ф
-                    data_args.column[5],//О
+                    data_args.value[0],//Оценка
+                    data_args.value[1],//Симестр
+                    data_args.value[2],//Предмет
+                    data_args.value[3],//И
+                    data_args.value[4],//Ф
+                    data_args.value[5],//О
             )},
             "Тема занятия" => {
             //TODO: Предвижу баг, когда два препода ведут один
@@ -120,8 +120,8 @@ impl DataForDB {
                     "INSERT INTO 'План_обучения' (Предмет, Тема_занятия
                     SELECT pr.id, '{}' FROM 'Предмет' pr 
                         WHERE pr.Наименование='{}'",
-                    data_args.column[1],//Тема
-                    data_args.column[0],//Предмет
+                    data_args.value[1],//Тема
+                    data_args.value[0],//Предмет
             )},
             "Предмет" => {
                 format!(
@@ -131,17 +131,17 @@ impl DataForDB {
                         AND k.Фамилия='{}' 
                         AND k.Отчество='{}'
                         AND k.Дожность=6",
-                    data_args.column[0],//Назв
-                    data_args.column[1],//И
-                    data_args.column[2],//Ф
-                    data_args.column[3],//О
+                    data_args.value[0],//Назв
+                    data_args.value[1],//И
+                    data_args.value[2],//Ф
+                    data_args.value[3],//О
             )},
             "Факультет" => {
                 format!(
                     "INSERT INTO 'Факультет' (Наименование, Адрес)
                     VALUE ('{}', '{}')",
-                    data_args.column[0],//Назв
-                    data_args.column[1],//Адрес
+                    data_args.value[0],//Назв
+                    data_args.value[1],//Адрес
                 )
             },
             _ => return Err("Проблема в target".into()),
