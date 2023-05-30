@@ -23,7 +23,7 @@ impl DataForDB {
         while index < args.len() {
             match args[index].as_str() {
                 "-t" => obj_data.target = args[index+1].clone(),
-                "-c" => obj_data.column = get_val_from_args(args, index+1),
+//                "-c" => obj_data.column = get_val_from_args(args, index+1),
                 "-v" => obj_data.value = get_val_from_args(args, index+1),
                 _ => (),
             }
@@ -305,7 +305,6 @@ impl DataForDB {
 
     fn get_data_from_db(&self, sql: &str, conn: &Connection) -> 
     Result<Vec<Vec<String>>, CustomE> {
-        //TODO: Пока не рализовано для случая '*'
         let mut stmt = conn.prepare(&sql)?;
         let rows = stmt.query_map(
             [], 
