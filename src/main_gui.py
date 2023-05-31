@@ -1,6 +1,7 @@
-from PyQt6.QtWidgets import (QApplication, QWidget, QLineEdit, QPushButton, QVBoxLayout)
+from PyQt6.QtWidgets import (QApplication, QWidget, QLineEdit, QPushButton, QVBoxLayout, QTextEdit)
 from PyQt6.QtCore import Qt
 import sys
+import os
 
 class Window(QWidget):
     def __init__(self):
@@ -10,6 +11,10 @@ class Window(QWidget):
  
         layout = QVBoxLayout()
         self.setLayout(layout)
+ 
+        self.output = QTextEdit()
+        self.output.setFixedWidth(500)
+        layout.addWidget(self.output, alignment= Qt.AlignmentFlag.AlignCenter)
  
         self.input = QLineEdit()
         self.input.setFixedWidth(200)
@@ -24,7 +29,7 @@ class Window(QWidget):
         layout.addWidget(button)
 
         button = QPushButton("Студент")
-        button.clicked.connect(self.get)
+        button.clicked.connect(self.wtf)
         layout.addWidget(button)
 
         button = QPushButton("Посещаемость")
@@ -54,8 +59,18 @@ class Window(QWidget):
     def get(self):
         text = self.input.text()
         print(text)
+
+    def wtf(self):
+        os.system("C:/Users/shevc/SimpleDataBase-2.0/SimpleDB2.exe -S -t Студент > stud.txt")
+        text_edit = QTextEdit()
+        text=open('stud.txt').read()
+        text_edit.setPlainText(text)
  
-app = QApplication(sys.argv)
-window = Window()
-window.show()
-sys.exit(app.exec())
+def main():
+    app = QApplication(sys.argv)
+    window = Window()
+    window.show()
+    sys.exit(app.exec())
+
+if __name__=="__main__":
+    main()
