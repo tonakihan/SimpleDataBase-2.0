@@ -38,8 +38,8 @@ impl DataForDB {
                 // Тут чекаю является ли элемент -> ключом запуска
                 if (element.chars().nth(0) != Some('-')) &&
                    (element.chars().nth(0) != None)
-                { 
-                    result.push(element.to_string()) 
+                {
+                    result.push(element.to_string())
                 }
                 else { break }
             }
@@ -54,15 +54,15 @@ impl DataForDB {
             "Студент" => {
                 format!(
                     "INSERT INTO 'Cтудент' (Номер_зачетки, Имя, Фамилия, Отчество,
-                        Дата_рождения, Группа, Адрес),
-                    VALUE ({},'{}','{}','{}','{}','{}','{}')",
-                    data_args.value[0],//Зачетка
-                    data_args.value[1],//И
-                    data_args.value[2],//Ф
-                    data_args.value[3],//О
-                    data_args.value[4],//Дата рожд
-                    data_args.value[5],//Группа (сокращ)
-                    data_args.value[6],//Адрес
+                        Дата_рождения, Группа, Адрес)
+                    VALUES ({},'{}','{}','{}','{}','{}','{}')",
+                    data_args.value[0], //Зачетка
+                    data_args.value[1], //И
+                    data_args.value[2], //Ф
+                    data_args.value[3], //О
+                    data_args.value[4], //Дата рожд
+                    data_args.value[5], //Группа (сокращ)
+                    data_args.value[6], //Адрес
             )},
             "Направление" => {
                 format!(
@@ -139,7 +139,7 @@ impl DataForDB {
             "Факультет" => {
                 format!(
                     "INSERT INTO 'Факультет' (Наименование, Адрес)
-                    VALUE ('{}', '{}')",
+                    VALUES ('{}', '{}')",
                     data_args.value[0],//Назв
                     data_args.value[1],//Адрес
                 )
