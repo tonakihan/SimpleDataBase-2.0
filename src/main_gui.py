@@ -1,76 +1,111 @@
-from PyQt6.QtWidgets import (QApplication, QWidget, QLineEdit, QPushButton, QVBoxLayout, QTextEdit)
+from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QVBoxLayout, QPushButton,QStackedLayout
 from PyQt6.QtCore import Qt
 import sys
 import os
 
-class Window(QWidget):
-    def __init__(self):
+os.chdir('..')
+
+class FormA(QWidget):
+    def __init__(self, parent=None):
         super().__init__()
-        self.resize(500, 500)
-        self.setWindowTitle("Why are we still here? Just to suffer?")
- 
         layout = QVBoxLayout()
         self.setLayout(layout)
- 
-        self.output = QTextEdit()
-        self.output.setFixedWidth(500)
-        layout.addWidget(self.output, alignment= Qt.AlignmentFlag.AlignCenter)
- 
-        self.input = QLineEdit()
-        self.input.setFixedWidth(200)
-        layout.addWidget(self.input, alignment= Qt.AlignmentFlag.AlignCenter)
- 
-        button = QPushButton("Get Text")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
- 
-        button = QPushButton("Clear Text")
-        button.clicked.connect(self.input.clear)
-        layout.addWidget(button)
 
-        button = QPushButton("Студент")
-        button.clicked.connect(self.wtf)
-        layout.addWidget(button)
+        self.input = QTextEdit()#Сюда всё выводится
+        #self.input.setFixedWidth(500)
+        layout.addWidget(self.input)
 
-        button = QPushButton("Посещаемость")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
+        self.button = QPushButton("Очистить вывод")#Всё и так понятно
+        self.button.clicked.connect(self.input.clear)
+        layout.addWidget(self.button)
 
-        button = QPushButton("Направление")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
+        self.button = QPushButton("Получить таблицу по студентам")#Кнопка для получения таблицы по студентам
+        self.button.clicked.connect(self.wtf)
+        layout.addWidget(self.button)
+        
+        self.button = QPushButton("Ввод новых данных(Внимание! Ввод берется из поля с текстом)")#Кнопка для получения таблицы по студентам
+        self.button.clicked.connect(self.ins)
+        layout.addWidget(self.button)
+        
+        self.btnPress = QPushButton("Страница1")
+        layout = QVBoxLayout()
 
-        button = QPushButton("Ведомость")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
-
-        button = QPushButton("Тема занятия")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
-
-        button = QPushButton("Предмет")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
-
-        button = QPushButton("Факультет")
-        button.clicked.connect(self.get)
-        layout.addWidget(button)
- 
-    def get(self):
-        text = self.input.text()
-        print(text)
+        layout.addWidget(self.btnPress)
 
     def wtf(self):
-        os.system("C:/Users/shevc/SimpleDataBase-2.0/SimpleDB2.exe -S -t Студент > stud.txt")
-        text_edit = QTextEdit()
-        text=open('stud.txt').read()
+        os.system("cd ..");os.system(".\SimpleDB2.exe -S -t Студент > stud.txt")       #Переход в директиву выше и выполнение команды в БД
+        text_edit = QTextEdit()                                                        #Копирование текста и кодировка
+        text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
- 
-def main():
-    app = QApplication(sys.argv)
-    window = Window()
-    window.show()
-    sys.exit(app.exec())
+        self.input.setText(text)
+        
+    def ins(self):
+        text_edit = QTextEdit()
+        change=(text_edit)
+        os.system("cd..");os.system(".\SimpleDB2.exe -I -t Студент -v",change)
 
-if __name__=="__main__":
-    main()
+class FormB(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        
+        self.input = QTextEdit()#Сюда всё выводится
+        #self.input.setFixedWidth(500)
+        layout.addWidget(self.input)
+        
+        self.button = QPushButton("Очистить вывод")#Всё и так понятно
+        self.button.clicked.connect(self.input.clear)
+        layout.addWidget(self.button)
+        
+        self.button = QPushButton("Получить таблицу по факультетам")#Кнопка для получения таблицы 
+        self.button.clicked.connect(self.tab)
+        layout.addWidget(self.button)
+
+    def tab(self):
+        os.system("cd ..");os.system(".\SimpleDB2.exe -S -t Факультет > stud.txt")       #выполнение команды в БД
+        text_edit = QTextEdit()                                                        #Копирование текста и кодировка
+        text=open('stud.txt',encoding='utf-8').read()
+        text_edit.setPlainText(text)
+        self.input.setText(text)
+
+class Window(QWidget):
+    def __init__(self, parent=None):
+        super(Window, self).__init__(parent)
+        self.setWindowTitle("Основное окно для БД")
+        self.resize(500, 500)
+        layout = QVBoxLayout()
+        
+        self.setLayout(layout)
+        
+        widget = QWidget()
+        self.stacked_layout = QStackedLayout()
+        widget.setLayout(self.stacked_layout)
+        layout.addWidget(widget)
+#########первая страница - по студентам
+        self.btnPress1 = QPushButton("Студенты")
+        self.form1 = FormA()
+        layout.addWidget(self.btnPress1)
+        self.btnPress1.clicked.connect(self.btnPress1_Clicked)
+#########вторая страница - по чтотото
+        self.btnPress2 = QPushButton("Факультеты")
+        self.form2 = FormB()
+        layout.addWidget(self.btnPress2)
+        self.btnPress2.clicked.connect(self.btnPress2_Clicked)
+
+        self.stacked_layout.addWidget(self.form1)
+        self.stacked_layout.addWidget(self.form2)
+
+    def btnPress1_Clicked(self):
+        self.stacked_layout.setCurrentIndex(0)
+
+    def btnPress2_Clicked(self):
+        self.stacked_layout.setCurrentIndex(1)
+
+    
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    win = Window()
+    win.show()
+    sys.exit(app.exec())
