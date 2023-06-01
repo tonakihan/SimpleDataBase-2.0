@@ -40,9 +40,10 @@ class FormA(QWidget):
         self.input.setText(text)
         
     def ins(self):
-        text_edit = QTextEdit()
-        change=(text_edit)
-        os.system("cd..");os.system(".\SimpleDB2.exe -I -t Студент -v",change)
+        change=".\SimpleDB2.exe -I -t Студент -v "
+        change+=(self.input.toPlainText())
+        
+        os.system("cd..");os.system(change)             #".\SimpleDB2.exe -I -t Студент -v "
 
 class FormB(QWidget):
     def __init__(self, parent=None):
@@ -61,6 +62,10 @@ class FormB(QWidget):
         self.button = QPushButton("Получить таблицу по факультетам")#Кнопка для получения таблицы 
         self.button.clicked.connect(self.tab)
         layout.addWidget(self.button)
+        
+        self.button = QPushButton("Ввод новых данных(Внимание! Ввод берется из поля с текстом)")#Кнопка для получения таблицы по студентам
+        self.button.clicked.connect(self.ins)
+        layout.addWidget(self.button)
 
     def tab(self):
         os.system("cd ..");os.system(".\SimpleDB2.exe -S -t Факультет > stud.txt")       #выполнение команды в БД
@@ -68,6 +73,12 @@ class FormB(QWidget):
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input.setText(text)
+        
+    def ins(self):
+        change=".\SimpleDB2.exe -I -t Факультет -v "
+        change+=(self.input.toPlainText())
+        
+        os.system("cd..");os.system(change) 
 
 class Window(QWidget):
     def __init__(self, parent=None):
