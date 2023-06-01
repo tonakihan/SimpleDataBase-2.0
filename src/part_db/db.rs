@@ -57,8 +57,8 @@ impl DataForDB {
                         Дата_рождения, Группа, Адрес)
                     VALUES ({},'{}','{}','{}','{}','{}','{}')",
                     data_args.value[0], //Зачетка
-                    data_args.value[1], //И
                     data_args.value[2], //Ф
+                    data_args.value[1], //И
                     data_args.value[3], //О
                     data_args.value[4], //Дата рожд
                     data_args.value[5], //Группа (сокращ)
@@ -70,7 +70,7 @@ impl DataForDB {
                         Код_направления, Дата_начала, Дата_окончания, Факультет)
                     SELECT '{}','{}',{},'{}','{}',f.id
                     FROM 'Факультет' f 
-                        WHERE f.Наименование={} ",
+                        WHERE f.Наименование='{}'",
                     data_args.value[0],//Сокр назв
                     data_args.value[1],//Полное назв
                     data_args.value[2],//Код напр
@@ -84,25 +84,25 @@ impl DataForDB {
                         Предмет, Студент, Присутствие, Оценка, 
                         Тема_занятия)
                     SELECT '{}', pr.id, st.Номер_зачетки, '{}', {}, pr.id
-                    FROM 'Предмет' pr JOIN 'Студент' st 
+                    FROM 'Предмет' pr JOIN 'Cтудент' st 
                         ON pr.Наименование='{}'
                         AND st.Имя='{}'
-                        AND s.Фамилия='{}'
-                        AND s.Отчество='{}'",
+                        AND st.Фамилия='{}'
+                        AND st.Отчество='{}'",
                     data_args.value[0],//Дата
                     data_args.value[1],//Присут
                     data_args.value[2],//Оценка
                     data_args.value[3],//Предмет
-                    data_args.value[4],//И
                     data_args.value[5],//Ф
+                    data_args.value[4],//И
                     data_args.value[6],//О
             )},
             "Ведомость" => {
                 format!("
-                    INSERT INTO Ведомость (Номер_предмет, 
+                    INSERT INTO 'Ведомость' (Номер_предмет, 
                         Номер_студент, Оценка, Симестр)
                     SELECT p.id, s.Номер_зачетки, {}, {}
-                    FROM Предмет p JOIN Cтудент s 
+                    FROM 'Предмет' p JOIN 'Cтудент' s 
                         ON p.Наименование='{}' 
                         AND s.Имя='{}' 
                         AND s.Фамилия='{}'
@@ -110,14 +110,14 @@ impl DataForDB {
                     data_args.value[0],//Оценка
                     data_args.value[1],//Симестр
                     data_args.value[2],//Предмет
-                    data_args.value[3],//И
                     data_args.value[4],//Ф
+                    data_args.value[3],//И
                     data_args.value[5],//О
             )},
             "Тема занятия" => {
             //TODO: Предвижу баг, когда два препода ведут один
                 format!(
-                    "INSERT INTO 'План_обучения' (Предмет, Тема_занятия
+                    "INSERT INTO 'План_обучения' (Предмет, Тема_занятия)
                     SELECT pr.id, '{}' FROM 'Предмет' pr 
                         WHERE pr.Наименование='{}'",
                     data_args.value[1],//Тема
@@ -130,10 +130,10 @@ impl DataForDB {
                         WHERE k.Имя='{}' 
                         AND k.Фамилия='{}' 
                         AND k.Отчество='{}'
-                        AND k.Дожность=6",
+                        AND k.Должность=6",
                     data_args.value[0],//Назв
-                    data_args.value[1],//И
                     data_args.value[2],//Ф
+                    data_args.value[1],//И
                     data_args.value[3],//О
             )},
             "Факультет" => {
@@ -242,7 +242,8 @@ impl DataForDB {
                 "SELECT coalesce(Номер_зачетки, 0, Фамилия, 0, Имя, 0, Отчество, 0, 
                     Дата_рождения, 0, Группа, 0, Адрес, 0) Номер_зачетки,Фамилия,Имя, 
                     Отчество,Дата_рождения,Группа,Адрес
-                FROM 'Cтудент'".to_string()
+                FROM 'Cтудент'
+                GROUP BY Номер_зачетки".to_string()
             },
             "Направление" => {
                 data_args.column.resize(6, "".to_string());
@@ -280,12 +281,12 @@ impl DataForDB {
                 FROM 'План_обучения' 
                 GROUP BY Предмет".to_string()
             },
-/*            "Предмет" => {
-                // Препода (потом)
-                data_args.get_sql("", "-S")?;
-                "".to_string()
+            "Предмет" => {
+                data_args.column.resize(4, "".to_string());
+                "SELECT Наименование, Фаимлия, Имя, Отчество 
+                FROM 'Предмет' p INNER JOIN 'Кадры' k
+                    ON k.id=p.Преподаватель".to_string()
             },
-*/
             "Факультет" => {
                 data_args.column.resize(3, "".to_string());
                 "SELECT coalesce(id, Наименование, 0, Адрес, 0) 
