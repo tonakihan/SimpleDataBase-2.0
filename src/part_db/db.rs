@@ -120,8 +120,8 @@ impl DataForDB {
                     "INSERT INTO 'План_обучения' (Предмет, Тема_занятия)
                     SELECT pr.id, '{}' FROM 'Предмет' pr 
                         WHERE pr.Наименование='{}'",
-                    data_args.value[1],//Тема
-                    data_args.value[0],//Предмет
+                    data_args.value[0],//Тема
+                    data_args.value[1],//Предмет
             )},
             "Предмет" => {
                 format!(
@@ -283,7 +283,7 @@ impl DataForDB {
             },
             "Предмет" => {
                 data_args.column.resize(4, "".to_string());
-                "SELECT Наименование, Фаимлия, Имя, Отчество 
+                "SELECT p.Наименование, k.Фамилия, k.Имя, k.Отчество 
                 FROM 'Предмет' p INNER JOIN 'Кадры' k
                     ON k.id=p.Преподаватель".to_string()
             },
