@@ -83,12 +83,13 @@ impl DataForDB {
                     "INSERT INTO 'Посещаемость' (Дата, 
                         Предмет, Студент, Присутствие, Оценка, 
                         Тема_занятия)
-                    SELECT '{}', pr.id, st.Номер_зачетки, '{}', {}, pr.id
-                    FROM 'Предмет' pr JOIN 'Cтудент' st 
+                    SELECT '{}', pr.id, st.Номер_зачетки, '{}', {}, pl.id
+                    FROM 'Предмет' pr JOIN 'Cтудент' st JOIN 'План_обучения' pl
                         ON pr.Наименование='{}'
                         AND st.Имя='{}'
                         AND st.Фамилия='{}'
-                        AND st.Отчество='{}'",
+                        AND st.Отчество='{}'
+                        AND pl.Тема_занятия='{}'",
                     data_args.value[0],//Дата
                     data_args.value[1],//Присут
                     data_args.value[2],//Оценка
@@ -96,6 +97,7 @@ impl DataForDB {
                     data_args.value[5],//Ф
                     data_args.value[4],//И
                     data_args.value[6],//О
+                    data_args.value[7],//Тема_занятия
             )},
             "Ведомость" => {
                 format!("
