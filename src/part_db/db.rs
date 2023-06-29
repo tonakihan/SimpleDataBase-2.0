@@ -147,7 +147,8 @@ impl DataForDB {
             _ => return Err("Проблема в target".into()),
         };
 
-        conn.execute(&sql, ())?;
+        let mut stmt = conn.prepare(&sql)?;
+        stmt.insert(())?;
         Ok(())
     }
 

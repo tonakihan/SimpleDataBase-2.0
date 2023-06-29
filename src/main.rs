@@ -28,7 +28,7 @@ fn set_mode(args: &Vec<String>, path_db: &String) -> Result<(), CustomE> {
     match args[1].as_str() {
         "-I" => DataForDB::insert_db(&args, &path_db)?,
         "-S" => DataForDB::select_db(&args, &path_db)?,
-        "-V" => println!("Version: {}", VERSION.unwrap_or("unknown")),
+        "-V" | "--version" => println!("Version: {}", VERSION.unwrap_or("unknown")),
         _ => return Err("Not found arguments".into()),
     }
     Ok(())
