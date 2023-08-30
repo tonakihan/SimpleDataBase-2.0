@@ -3,8 +3,8 @@
 mod part_db;
 
 // Включаем в область видимости структуры
-use crate::part_db::error::CustomE;
-use crate::part_db::db::DataForDB;
+use self::part_db::error::CustomE;
+use self::part_db::db::DataForDB;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 

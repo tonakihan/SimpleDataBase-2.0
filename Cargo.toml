@@ -1,5 +1,5 @@
 [package]
-name = "SimpleDB2"
+name = "SDB2-cli"
 version = "0.1.5"
 edition = "2021"
 

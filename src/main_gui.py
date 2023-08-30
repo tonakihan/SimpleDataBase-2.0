@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import os
 from PyQt6.QtCore import Qt
@@ -14,12 +15,12 @@ from PyQt6.QtWidgets import (
     QPushButton,
 )
 
-os.chdir('..')# для работы с SimpleDB2.exe
+os.chdir('..')# для работы с SDB2-cli.exe
 
 class Window(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SimpleDB2")
+        self.setWindowTitle("SDB2-cli")
         # Create a top-level layout
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -209,86 +210,86 @@ class Window(QWidget):
         self.input.setText(text)
         
     def StudOut(self):
-        os.system(".\SimpleDB2.exe -S -t Студент > stud.txt")       #выполнение команды в БД
+        os.system(".\SDB2-cli.exe -S -t Студент > stud.txt")       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input2.setText(text)
         
     def StudIn(self):
-        change=".\SimpleDB2.exe -I -t Студент -v "
+        change=".\SDB2-cli.exe -I -t Студент -v "
         change+=(self.input2.toPlainText())
         os.system(change)      
 
     def PosOut(self):
-        os.system(".\SimpleDB2.exe -S -t Посещаемость > stud.txt")       #выполнение команды в БД
+        os.system(".\SDB2-cli.exe -S -t Посещаемость > stud.txt")       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input3.setText(text)
         
     def PosIn(self):
-        change=".\SimpleDB2.exe -I -t Посещаемость -v "
+        change=".\SDB2-cli.exe -I -t Посещаемость -v "
         change+=(self.input3.toPlainText())
         os.system(change)
         
     def NapOut(self):
-        os.system(".\SimpleDB2.exe -S -t Направление > stud.txt")       #выполнение команды в БД
+        os.system(".\SDB2-cli.exe -S -t Направление > stud.txt")       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input4.setText(text)
         
     def NapIn(self):
-        change=".\SimpleDB2.exe -I -t Направление -v "
+        change=".\SDB2-cli.exe -I -t Направление -v "
         change+=(self.input4.toPlainText())
         os.system(change) 
         
     def VedOut(self):
-        os.system(".\SimpleDB2.exe -S -t Ведомость > stud.txt")       #выполнение команды в БД
+        os.system(".\SDB2-cli.exe -S -t Ведомость > stud.txt")       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input5.setText(text)
         
     def VedIn(self):
-        change=".\SimpleDB2.exe -I -t Ведомость -v "
+        change=".\SDB2-cli.exe -I -t Ведомость -v "
         change+=(self.input5.toPlainText())
         os.system(change)
         
     def ZanOut(self):
-        os.system('.\SimpleDB2.exe -S -t "Тема занятия" > stud.txt')       #выполнение команды в БД
+        os.system('.\SDB2-cli.exe -S -t "Тема занятия" > stud.txt')       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input6.setText(text)
         
     def ZanIn(self):
-        change='.\SimpleDB2.exe -I -t "Тема занятия" -v '
+        change='.\SDB2-cli.exe -I -t "Тема занятия" -v '
         change+=(self.input6.toPlainText())
         os.system(change)
         
     def PredOut(self):
-        os.system(".\SimpleDB2.exe -S -t Предмет > stud.txt")       #выполнение команды в БД
+        os.system(".\SDB2-cli.exe -S -t Предмет > stud.txt")       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input7.setText(text)
         
     def PredIn(self):
-        change=".\SimpleDB2.exe -I -t Предмет -v "
+        change=".\SDB2-cli.exe -I -t Предмет -v "
         change+=(self.input7.toPlainText())
         os.system(change)
         
     def FacOut(self):
-        os.system(".\SimpleDB2.exe -S -t Факультет > stud.txt")       #выполнение команды в БД
+        os.system(".\SDB2-cli.exe -S -t Факультет > stud.txt")       #выполнение команды в БД
         text_edit = QTextEdit()                                                        #Копирование текста и кодировка
         text=open('stud.txt',encoding='utf-8').read()
         text_edit.setPlainText(text)
         self.input8.setText(text)
         
     def FacIn(self):
-        change=".\SimpleDB2.exe -I -t Факультет -v "
+        change=".\SDB2-cli.exe -I -t Факультет -v "
         change+=(self.input8.toPlainText())
         os.system(change) 
 
