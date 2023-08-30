@@ -29,7 +29,7 @@ cp target/release/SDB2-cli ./
 pip install -r requirements.txt
 
 # Удаление ненужных файлов
-rm -R target Cargo.* *.rs src/part_db libsqlite3-0.dll requirements.txt SDB2-cli.tar.gz
+rm -R target Cargo.* src/{part_db,*.rs} libsqlite3-0.dll requirements.txt ../SDB2.tar.gz
 ```
 #### Windows
 - Скачайте c исходникаи zip и распакуйте
