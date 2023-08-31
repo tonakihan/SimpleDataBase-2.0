@@ -23,7 +23,6 @@ impl DataForDB {
         while index < args.len() {
             match args[index].as_str() {
                 "-t" => obj_data.target = args[index+1].clone(),
-//                "-c" => obj_data.column = get_val_from_args(args, index+1),
                 "-v" => obj_data.value = get_val_from_args(args, index+1),
                 _ => (),
             }
@@ -153,88 +152,6 @@ impl DataForDB {
         stmt.insert(())?;
         Ok(())
     }
-
-/*    fn replace_data(&mut self, target: &str, requir_columns: Vec<&str>, 
-    conn: &Connection) -> Result<&Self, CustomE> {
-        // Используется только для вставки
-        // Принимает цель - назв таблицы где искать и список столбцов
-        // Возращает измененные входные данные на значения из target
-
-        let mut two_obj = Self::new();
-        // Задаются столбцы для поиска
-        two_obj.column = requir_columns.into_iter().map(|i| i.to_string()).collect();
-        //Достаю данные из таблици target
-        let two_query = two_obj.get_sql(target, "-S")?;
-        let two_data = two_obj.get_data_from_db(two_query.as_str(), conn)?;
-        
-        // Тут я ищу index target из строки вводной
-        let mut id_elem_args = None;
-        for index in 0..self.column.len() {
-            if self.column[index] == target {
-                id_elem_args = Some(index);
-                break;
-            }
-        }
-            
-        if id_elem_args == None {
-            return Err(
-                format!("Нет искомого значения в args -> {}", target).into()
-        )}
-
-        // Заменяю значение в вводной строке
-        for two_part in two_data {
-            if self.value[id_elem_args.unwrap()] == two_part[1] {
-                self.value[id_elem_args.unwrap()] = two_part[0].clone();
-                break;
-            }
-        }
-        Ok(self)
-    }
-
-    fn get_sql(&self, table: &str, key: &str) -> 
-    Result<String, CustomE> {
-        // Генерирует синтаксис для запроса в БД - простой
-        if (key == "-I") && (self.column.len() < 1)
-            { return Err("Проблема - нет значения column".into()); }
-        if (key == "-I") && (self.value.len() < 1) 
-            { return Err("Проблема - нет значения value".into()); }
-        if (key == "-I") && (self.value.len() != self.column.len()) 
-            { return Err("Проблема - нехватка значений -> value != column".into()); }
-
-        //TODO: КАК ВЫТАСКИВАТЬ ДАННЫЕ ИЗ S и I
-        let mut sql = String::new();
-        match key {
-            "-I" => {
-                sql = format!(
-                    "INSERT INTO '{}' ({}) VALUES ('{}')",
-                    table,
-                    self.column.join(", "),
-                    self.value.join("', '"),
-            )}
-            "-S" => {
-                if self.column.len() < 1 {
-                    sql = format!(
-                        "SELECT * FROM '{}'",
-                        table,
-                )} else {
-                    sql = format!(
-                        // 0 - будет значением для избежания ошибок
-                        "SELECT coalesce({}, 0){} FROM '{}'",
-                        self.column.join(", 0, "),
-                        self.column.join(", "),
-                        table,
-                )}
-            },
-/*            "-R" => {
-                //TODO: Рекурсия - 
-                sql = format!("INNER JOIN {}")
-            },
-*/
-            _ => return Err("Неверный ключ в get_sql".into()),
-        }
-        Ok(sql)
-    }
-*/
 
     pub fn select_db(args: &Vec<String>, path: &String) -> Result<(), CustomE> {
         let mut data_args = Self::get_data(&args)?;

@@ -5,7 +5,7 @@
 ## Install
 ### Binarny files
 Windows
-- Скачайте и установите .exe из releases
+- Скачайте и установите setup.exe из releases
 
 ### From source
 Для сборки требуется
@@ -25,7 +25,7 @@ cd SimpleDataBase-2.0-main
 
 # Сборка
 cargo build -r
-cp target/release/SDB2-cli ./
+cp target/release/SDB2-cli ./SDB2-cli.bin
 pip install -r requirements.txt
 
 # Удаление ненужных файлов
@@ -49,15 +49,22 @@ rm Cargo.* src/main.rs requirements.txt SDB2-cli.zip
 ## GUI
 ### Launch
 Linux (Не проверенно!)
-```
-./src/main_gui.py
+``` bash
+cd src; ./main_gui.py
 ```
 
 ## CLI
 ### Launch
 Linux
+``` bash
+./SDB2-cli.bin [ПАРАМЕТРЫ]
 ```
-./SDB2-cli [ПАРАМЕТРЫ]
+Windows 
+```
+.\SDB2-cli.exe [ПАРАМЕТРЫ]
+```
+```
+.\SDB2-cli [ПАРАМЕТРЫ]
 ```
 ### Interface
 Реализованы параметры
