@@ -18,12 +18,14 @@ fn main() {
         exit(1);
     }
     
-    // Get path to current application
-    let tmp_binding = env::current_exe()
+    // Get path to current dir
+    let path_exe = env::current_exe()
         .expect("Проблемы с получением path_exe");
-    let path_exe = tmp_binding.display();
+    let current_dir = path_exe.parent()
+        .expect("Проблемы с current_dir").to_str()
+        .expect("Неудачное перобразование current_dir");
 
-    let path_to_db = format!("{}/data/test.db", path_exe).to_string();
+    let path_to_db = format!("{}/data/test.db", current_dir).to_string();
     set_mode(&args, &path_to_db)
         .expect("Проблемы из set_mode");
 }
