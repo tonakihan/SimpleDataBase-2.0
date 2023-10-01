@@ -17,8 +17,13 @@ fn main() {
         eprintln!("Not found arguments");
         exit(1);
     }
+    
+    // Get path to current application
+    let tmp_binding = env::current_exe()
+        .expect("Проблемы с получением path_exe");
+    let path_exe = tmp_binding.display();
 
-    let path_to_db = "data/test.db".to_string();
+    let path_to_db = format!("{}/data/test.db", path_exe).to_string();
     set_mode(&args, &path_to_db)
         .expect("Проблемы из set_mode");
 }
